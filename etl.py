@@ -8,11 +8,16 @@ This script orchestrates the complete ETL pipeline:
 4. Upload: Upload to SharePoint
 
 Usage:
-    uv run etl.py
+    uv run etl.py [--keep-extra]
+
+Args:
+    --keep-extra   Keep extra columns that are not in EXPECTED_COLUMNS when
+                   reordering columns (default: False → extra columns dropped)
 """
 
 import sys
 from pathlib import Path
+import argparse
 
 # Add project root to path
 project_root = Path(__file__).parent
@@ -26,7 +31,7 @@ from etl.validator import save_to_staging, validate_columns, reorder_columns
 from config.settings import validate_settings, STAGING_DB_PATH, EXCEL_OUTPUT
 
 
-def run_etl():
+def run_etl(keep_extra: bool = False):
     """
     Execute the complete ETL pipeline.
     
@@ -37,35 +42,39 @@ def run_etl():
     4. Load data to Access database
     5. Upload Access database to SharePoint
     
+    Params:
+        keep_extra (bool): If True, keep extra columns when reordering to
+            expected schema; if False, drop columns not in EXPECTED_COLUMNS.
+
     Returns:
         bool: True if pipeline completed successfully, False otherwise
     """
     print("=" * 80)
-    print("🚀 ETL SATIAP HOME - Pipeline Starting")
+    print("ETL SATIAP HOME - Pipeline Starting")
     print("=" * 80)
     
     try:
         # Step 0: Validate configuration
-        print("\n📋 Step 0: Validating configuration...")
+        print("\nStep 0: Validating configuration...")
         try:
             validate_settings()
-            print("  ✅ Configuration validated")
+            print("Configuration validated")
         except ValueError as e:
-            print(f"  ⚠️  Configuration warnings: {e}")
-            print("  ℹ️  Continuing anyway (some features may not work)")
+            print(f"Configuration warnings: {e}")
+            print("Continuing anyway (some features may not work)")
         
         # Step 1: Extract
-        print("\n📥 Step 1: Extracting data from CSV...")
+        print("\nStep 1: Extracting data from CSV...")
         df = load_csv()
-        print(f"  ✅ Extracted {len(df)} rows, {len(df.columns)} columns")
+        print(f"Extracted {len(df)} rows, {len(df.columns)} columns")
         
         # Step 2: Transform
-        print("\n🔄 Step 2: Transforming data...")
+        print("\nStep 2: Transforming data...")
         df_transformed = transform(df)
-        print(f"  ✅ Transformed to {len(df_transformed)} rows, {len(df_transformed.columns)} columns")
+        print(f"Transformed to {len(df_transformed)} rows, {len(df_transformed.columns)} columns")
         
         # Step 3: Staging and Validation
-        print("\n🛡️ Step 3: Staging and Validation...")
+        print("\nStep 3: Staging and Validation...")
         
         # Save to SQLite
         save_to_staging(df_transformed)
@@ -74,44 +83,46 @@ def run_etl():
         is_valid, errors = validate_columns(df_transformed)
         
         if not is_valid:
-            print("  ❌ Validation FAILED!")
+            print("Validation FAILED!")
             for err in errors:
                 print(f"    - {err}")
-            print("\n⛔ Pipeline stopped due to validation errors.")
+            print("\nPipeline stopped due to validation errors.")
             return False
             
-        print("  ✅ Column schema validation passed")
+        print("Column schema validation passed")
 
-        # Reorder columns to match expected schema (keep any extras at the end)
-        df_transformed = reorder_columns(df_transformed)
-        print("  🔀 Columns reordered to expected schema")
+        # Reorder columns to match expected schema
+        df_transformed = reorder_columns(df_transformed, keep_extra=keep_extra)
+        print(
+            f"Columns reordered to expected schema (keep_extra={'True' if keep_extra else 'False'})"
+        )
 
         # Step 4: Load to Excel
-        print("\n💾 Step 4: Loading data to Excel file...")
+        print("\nStep 4: Loading data to Excel file...")
         write_to_excel(df_transformed)
-        print(f"  ✅ Data loaded to Excel")
+        print("Data loaded to Excel")
         
         # Verify Excel data
         verify_excel_data()
         
         # Step 5: Upload to SharePoint
-        print("\n☁️  Step 5: Uploading to SharePoint...")
+        print("\nStep 5: Uploading to SharePoint...")
         try:
             upload_to_sharepoint()
-            print(f"  ✅ Uploaded to SharePoint")
+            print("Uploaded to SharePoint")
             
             # Verify upload
             verify_sharepoint_upload()
         except Exception as e:
-            print(f"  ⚠️  SharePoint upload failed: {e}")
-            print(f"  ℹ️  Excel file was created successfully at: {Path('data/output/output.xlsx').absolute()}")
-            print(f"  ℹ️  You can manually upload it to SharePoint")
+            print(f"SharePoint upload failed: {e}")
+            print(f"Excel file was created successfully at: {Path('data/output/output.xlsx').absolute()}")
+            print("You can manually upload it to SharePoint")
         
         # Success!
         print("\n" + "=" * 80)
-        print("✅ ETL PIPELINE COMPLETED SUCCESSFULLY!")
+        print("ETL PIPELINE COMPLETED SUCCESSFULLY!")
         print("=" * 80)
-        print(f"\n📊 Summary:")
+        print(f"\nSummary:")
         print(f"  - Rows processed: {len(df_transformed)}")
         print(f"  - Staging DB: {STAGING_DB_PATH}")
         print(f"  - Excel file: {EXCEL_OUTPUT}")
@@ -121,12 +132,12 @@ def run_etl():
         return True
         
     except FileNotFoundError as e:
-        print(f"\n❌ ERROR: File not found - {e}")
-        print(f"  ℹ️  Make sure 'data/datafeadback.csv' exists")
+        print(f"\nERROR: File not found - {e}")
+        print(f"Make sure 'data/datafeadback.csv' exists")
         return False
         
     except Exception as e:
-        print(f"\n❌ ERROR: Pipeline failed - {e}")
+        print(f"\nERROR: Pipeline failed - {e}")
         import traceback
         traceback.print_exc()
         return False
@@ -138,7 +149,20 @@ def main():
     
     This function is called when running: uv run etl.py
     """
-    success = run_etl()
+    parser = argparse.ArgumentParser(description="Run the ETL SATIAP Home pipeline")
+    parser.add_argument(
+        "--keep-extra",
+        action="store_true",
+        default=False,
+        help=(
+            "Keep extra columns not present in EXPECTED_COLUMNS when reordering. "
+            "Default: False (drops extra columns)."
+        ),
+    )
+
+    args = parser.parse_args()
+
+    success = run_etl(keep_extra=args.keep_extra)
     sys.exit(0 if success else 1)
 
 
