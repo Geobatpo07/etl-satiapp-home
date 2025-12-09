@@ -1,0 +1,13 @@
+[project]
+name = "etl-satiap-home"
+version = "1.0.0"
+description = "Pipeline ETL automatisé pour charger, transformer et uploader des données vers SharePoint"
+readme = "README.md"
+requires-python = ">=3.10"
+dependencies = [
+    "pandas>=2.0.0",
+    "openpyxl>=3.1.0",
+    "requests>=2.31.0",
+    "python-dotenv>=1.0.0",
+]
+
