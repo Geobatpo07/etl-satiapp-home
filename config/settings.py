@@ -20,7 +20,7 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 # ============================================================================
 
 # Path to the input CSV file containing feedback data
-CSV_PATH = BASE_DIR / "data" / "datafeadback.csv"
+CSV_PATH = BASE_DIR / "data" / "datafeedback.csv"
 
 # Path to the output Excel file
 EXCEL_OUTPUT = BASE_DIR / "data" / "output" / "output.xlsx"

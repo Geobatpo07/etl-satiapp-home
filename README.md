@@ -2,7 +2,7 @@
 
 Pipeline ETL automatisé pour extraire, transformer et charger des données de feedback depuis un fichier CSV vers une base Access, puis uploader vers SharePoint.
 
-## 🏗️ Architecture
+## Architecture
 
 ```
 etl-satiap-home/
@@ -24,7 +24,7 @@ etl-satiap-home/
 └── etl.py                  # Point d'entrée principal
 ```
 
-## 🚀 Installation
+## Installation
 
 ### Prérequis
 
@@ -43,13 +43,13 @@ cd "c:\Users\gblaguerre\Documents\Data Analytics Projects\etl-satiap-home"
 uv sync
 ```
 
-## ⚙️ Configuration
+## Configuration
 
 Éditez `config/settings.py` et configurez les paramètres suivants :
 
 ```python
 # Chemins des fichiers
-CSV_PATH = "data/datafeadback.csv"
+CSV_PATH = "data/datafeedback.csv"
 EXCEL_OUTPUT = "data/output/output.xlsx"
 
 # Configuration SharePoint
@@ -68,7 +68,7 @@ ACCESS_TOKEN = "votre-token-graph-api"
 3. Générez un token d'accès
 4. Copiez le token dans `settings.py`
 
-## 📊 Utilisation
+## Utilisation
 
 ### Exécution complète du pipeline
 
@@ -99,7 +99,7 @@ uv run python
 >>> upload_to_sharepoint()
 ```
 
-## 🔄 Transformations appliquées
+## Transformations appliquées
 
 ### Transformations VBA
 - Correction d'encodage (Ã´→ô, Ã©→é, etc.)
@@ -117,14 +117,14 @@ uv run python
 - Mapping des ratings vers étoiles (1-5)
 - Standardisation des textes
 
-## 🛠️ Dépendances
+## Dépendances
 
 - **pandas** : Manipulation de données
 - **openpyxl** : Création et formatage de fichiers Excel
 - **requests** : API SharePoint
 - **python-dotenv** : Gestion de configuration
 
-## ⚠️ Troubleshooting
+## Troubleshooting
 
 ### Erreur : "Module not found: openpyxl"
 - Exécutez `uv sync` pour installer toutes les dépendances
@@ -138,17 +138,17 @@ uv run python
 - Vérifiez que votre CSV contient les colonnes attendues
 - Ajustez les noms de colonnes dans `transformer.py` si nécessaire
 
-## 📝 Logs
+## Logs
 
 Le pipeline affiche des logs détaillés dans la console :
 - ✅ Succès des étapes
 - ⚠️ Avertissements
 - ❌ Erreurs avec détails
 
-## 📄 License
+## License
 
 Projet interne SATIAP Home
 
-## 👤 Auteur
+## Auteur
 
-Créé pour automatiser le pipeline de feedback SATIAP
+Créé par Geovany LAGUERRE | Data Science & Analytics Engineer

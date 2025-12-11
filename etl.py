@@ -133,7 +133,7 @@ def run_etl(keep_extra: bool = False):
         
     except FileNotFoundError as e:
         print(f"\nERROR: File not found - {e}")
-        print(f"Make sure 'data/datafeadback.csv' exists")
+        print(f"Make sure 'data/datafeedback.csv' exists")
         return False
         
     except Exception as e:
